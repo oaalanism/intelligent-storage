@@ -60,7 +60,7 @@ class Storage:
         self.applyThreshold()
         nb_pixels_changed = self.compare()
         
-
+        print(nb_pixels_changed)
         if nb_pixels_changed > self.nb_pixels_max or time - self.inactivityTime <= 10 :
             #self.startCodeFrame()
             self.storeDepthImage(nb_frame)
