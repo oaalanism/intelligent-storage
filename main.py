@@ -1,4 +1,4 @@
 from streaming import Streaming
 
-stream = Streaming([424, 240], [100, 3000], 50)
+stream = Streaming(size = [424, 240], scope = [100, 3000], minChange = 50, nb_pixels_max = 8000)
 stream.start()
