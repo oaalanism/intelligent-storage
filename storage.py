@@ -65,8 +65,9 @@ class Storage:
             self.storeDepthImage(nb_frame)
             if nb_pixels_changed > self.nb_pixels_max:
                 self.inactivityTime = time
+                self.inactivity = False
 
-        elif nb_pixels_changed < self.nb_pixels_max and self.inactivityTime == 9:
+        elif self.inactivity == True:
             self.inactivityTime = time
 
     def setFrame(self, frame):
@@ -80,4 +81,4 @@ class Storage:
         self.scope = scope
         self.minChange = minChange
         self.inactivityTime = 0
-        self.huffmanCode = None
+        self.inactivity = False

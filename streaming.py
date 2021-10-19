@@ -74,7 +74,7 @@ class Streaming:
             self.pipeline = rs.pipeline()
             self.config = rs.config()
             self.config.enable_stream(rs.stream.depth, self.width, self.height, rs.format.z16, 15)
-            self.storage = Storage([self.width, self.height], 6000, scope, minChange)
+            self.storage = Storage([self.width, self.height], 8000, scope, minChange)
             
             self.parameters = [False, '7', '5', False, 500.0, 20000.0, 2000.0, 10000000.0, True, False, 0.7, 0.0, True, True, 0.3, 0.3, True, True, 0.45, 0.2, '30', ([0, 0],[212, 0],[212, 90], [180, 50], [40, 50],[0, 90]), ([0, 100], [40, 60], [172, 60], [212, 100], [212, 120], [0, 120]), ([-5,-5],[216,-5],[216,50],[-5,50]), ([-5,51],[216,51],[216,125],[-5,125]), (20,20,0), (35,30,0), '40']
         
