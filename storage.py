@@ -10,24 +10,21 @@ class Storage:
         scipy.sparse.save_npz('./output/algo/image-'+str(nb_frame)+'.npz', depthImageSparce)
 
     def compare(self):
-
+        nb_pixels_changed = 0
         if self.referenceData.size == 0:
-            c = [self.scope[0], self.scope[1], self.minChange]
-            config = np.array(c)
-            config.astype('int16').tofile('config_storage.bin')
             nb_pixels_changed = self.width*self.height
             self.referenceData = self.frame
         else:
-            diff = abs(self.referenceData - self.frame)
-            one = np.ones((self.height, self.width))*self.minChange 
-            com = diff > one
-            com_neg = diff < one
+            diff = np.abs(np.subtract(self.referenceData, self.frame))
+            minTolerance = np.ones((self.height, self.width))*self.minChange 
+            com = diff >= minTolerance
+            com_neg = diff < minTolerance
             (_, counts) = np.unique(com, return_counts=True)
 
             nb_pixels_changed = counts[1]
-            
+            zero = np.zeros((self.height, self.width))
             self.referenceData = self.frame
-            self.frame = np.where(com_neg, 0, self.frame)
+            self.frame = np.where(com, self.frame, zero)
             
         
         return nb_pixels_changed
@@ -54,52 +51,6 @@ class Storage:
     def storeRawData(self, nb_frame):
         with open('./output/raw_data/image-'+str(nb_frame)+".npy", "wb") as f:
             np.save(f, self.frame)
-
-    def buildRedPixel(self, d_normal):
-        filtre1 = np.where(np.bitwise_or(np.bitwise_and(0 <= d_normal, d_normal <= 255), np.bitwise_and(1275 <= d_normal, d_normal <= 1529)), 255, 0)
-        filtre2 = np.where(np.bitwise_and(255 < d_normal, d_normal <= 510), 255 - d_normal, 0)
-        filtre3 = np.where(np.bitwise_and(510 < d_normal, d_normal <= 1020), 0, 0)
-        filtre4 = np.where(np.bitwise_and(1020 < d_normal, d_normal <= 1275), d_normal - 1020, 0)
-        pr = filtre1 + filtre2 + filtre3 + filtre4
-        return pr
-
-    def buildGreenPixel(self, d_normal):
-        filtre1 = np.where(np.bitwise_and(0 < d_normal, d_normal <= 255), d_normal, 0)
-        filtre2 = np.where(np.bitwise_and(255 < d_normal, d_normal <= 510), 255, 0)
-        filtre3 = np.where(np.bitwise_and(510 <d_normal, d_normal <= 765), 765 - d_normal, 0)
-        filtre4 = np.where(np.bitwise_and(765 < d_normal, d_normal <= 1529), 0, 0)
-        pg = filtre1 + filtre2 + filtre3 + filtre4
-        return pg
-
-    def buildBluePixel(self, d_normal):
-        filtre1 = np.where(np.bitwise_and(0 < d_normal, d_normal <= 765), 0, 0)
-        filtre2 = np.where(np.bitwise_and(765 < d_normal, d_normal <= 1020), d_normal - 765, 0)
-        filtre3 = np.where(np.bitwise_and(1020 < d_normal, d_normal <= 1275), 255, 0)
-        filtre4 = np.where(np.bitwise_and(1275 < d_normal, d_normal <= 1529), 1275 - d_normal, 0)
-        pb = filtre1 + filtre2 + filtre3 + filtre4
-        return pb
-
-    def buildImage(self, d_normal):
-        pr = self.buildRedPixel(d_normal)
-        pg = self.buildGreenPixel(d_normal)
-        pb = self.buildBluePixel(d_normal)
-
-        image = np.zeros((self.height, self.width, 3))
-        image[:,:,2] = pr
-        image[:,:,1] = pg
-        image[:,:,0] = pb
-        image = image.astype('uint8')
-        return image
-
-    def appplyColorization(self):
-
-        d_normal = ((self.frame - self.scope[0]) / (self.scope[1] - self.scope[0])) * 1529
-
-        self.depth_color_image = self.buildImage(d_normal)
-        return self.depth_color_image
-        
-        
-        
         
     def storeVideo(self):
         self._out.write(self.depth_color_image)
@@ -126,3 +77,6 @@ class Storage:
         self._fourcc = cv2.VideoWriter_fourcc(*'XVID')
         self._out = cv2.VideoWriter(self._name, self._fourcc, 20.0, (424, 240))
         self.depth_color_image = None
+        c = [self.scope[0], self.scope[1], self.minChange]
+        config = np.array(c)
+        config.astype('int16').tofile('config_storage.bin')

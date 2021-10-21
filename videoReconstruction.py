@@ -34,22 +34,29 @@ class VideoReconstruction:
         self.files = sorted(self.files, key=lambda x: float(x.split("-")[1][:-4]))
 
     def getFileData(self):
-        self.sparce_depth = []
+        self.sparce_frames = []
         for file in self.files:
             frameSparse = scipy.sparse.load_npz(file)
             frame =np.array(frameSparse.toarray())
-            self.sparce_depth.append(frame)
+            self.sparce_frames.append(frame)
+
+    def buildDepthFrames(self):
+        self.depth_frames = []
+        for sparce_frame in self.sparce_frames:
+            self.frame = sparce_frame
+            self.construct()
+            self.depth_frames.append(self.lastFrame)
     
     def showVideo(self):
-        for frame in self.sparce_depth:
+        for frame in self.depth_frames:
             self.frame = frame
-            self.construct()
             self.show()
 
     def start(self):
         self.getFiles()
         self.getFileData()
-        return self.sparce_depth
+        self.buildDepthFrames()
+        return self.depth_frames
 
     def __init__(self, path):
         self.lastFrame = np.array([])

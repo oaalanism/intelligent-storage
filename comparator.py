@@ -10,8 +10,10 @@ class Comparator:
 
     def meanSquareDeviation(self, frameReference, frameConstruit):
         n = frameReference.size
-        diff = pow(abs(frameReference - frameConstruit), 2)
-        sum = diff.sum()
+        divi = np.ones((frameReference.shape))*1000
+        diff = (frameReference - frameConstruit) / divi
+        pot = np.power(diff, 2)
+        sum = np.sum(pot, dtype=np.float64)
         msd = sum /n
         return msd
  
@@ -25,16 +27,23 @@ class Comparator:
 
     def getMSDFrames(self, referenceFrames, contructionFrames):
         msdFrames = []
-        for i in range(len(referenceFrames)):
+        t = 0
+        if (len(referenceFrames) < len(contructionFrames)):
+            t = len(referenceFrames)
+        else:
+            t = len(contructionFrames)
+        for i in range(t):
             msd = self.meanSquareDeviation(referenceFrames[i], contructionFrames[i])
             msdFrames.append(msd)
 
         return msdFrames 
     
     def plotMSD(self):
-        x = [i for i in range(len(self.msdRawAlgo))]
-        plt.plot(x, self.msdRawAlgo, label ='MSD Raw-Algorithme')
-        plt.plot(x, self.msdRawVideo, label='MSD Raw-Video')
+        xRA = [i for i in range(len(self.msdRawAlgo))]
+        xRV = [i for i in range(len(self.msdRawVideo))]
+        plt.plot(xRA, self.msdRawAlgo, 'b')
+        plt.plot(xRV, self.msdRawVideo, 'g')
+        plt.legend(['MSD Raw-Algorithme', 'MSD Raw-Video'])
         plt.title("MSD")
         plt.show()
 
@@ -46,7 +55,7 @@ class Comparator:
         self.msdRawVideo = self.getMSDFrames(self.raw_depth_frames, self.video_depth_frames)
         print("Ploting MSD...")
         self.plotMSD()
-        x = str(input("Tap anything to scape"))
+        #x = str(input("Tap anything to scape"))
 
     def __init__(self, rawDataPath, algoPath, videoPath):
         self.rawDataReader = RawDataReader(rawDataPath)

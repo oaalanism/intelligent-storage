@@ -1,14 +1,17 @@
 from comparator import Comparator
 import sys
 """
-rawDataPath = sys.argv[1]
-algoPath = sys.argv[2]
-videoPath = sys.argv[3]
-"""
+
 rawDataPath = './output/raw_data/'
 algoPath = './output/algo/'
 videoPath = './output/video/stream.avi'
+"""
 
+outputPath = sys.argv[1]
+
+rawDataPath = outputPath + "raw_data/"
+algoPath = outputPath + "algo/"
+videoPath = outputPath + "video/"
 
 
 comparator = Comparator(rawDataPath, algoPath, videoPath)
