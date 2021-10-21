@@ -1,5 +1,4 @@
 import os
-import sys
 from numpy.core.fromnumeric import sort
 import scipy.sparse
 import cv2
@@ -30,27 +29,40 @@ class VideoReconstruction:
             self.lastFrame = reconstruction
             self.frame = reconstruction
 
-    def start(self):
-        path = './output/'
-        config = np.fromfile('config_storage.bin', dtype=np.int16)
-        self.scope = [config[0], config[1]]
-        self.minChange = config[2]
-        if path:
-            os.chdir(path)
-            files = [f for f in os.listdir()]
-            files = sorted(files, key=lambda x: float(x.split("-")[1][:-4]))
-            for file in files:
-                frameSparse = scipy.sparse.load_npz(file)
-                self.frame =np.array(frameSparse.toarray())
-                self.construct()
-                self.show()
-                ##self.show(frame)
+    def getFiles(self):
+        self.files = [self.path + f for f in os.listdir(self.path)]
+        self.files = sorted(self.files, key=lambda x: float(x.split("-")[1][:-4]))
 
-    def __init__(self):
+    def getFileData(self):
+        self.sparce_depth = []
+        for file in self.files:
+            frameSparse = scipy.sparse.load_npz(file)
+            frame =np.array(frameSparse.toarray())
+            self.sparce_depth.append(frame)
+    
+    def showVideo(self):
+        for frame in self.sparce_depth:
+            self.frame = frame
+            self.construct()
+            self.show()
+
+    def start(self):
+        self.getFiles()
+        self.getFileData()
+        return self.sparce_depth
+
+    def __init__(self, path):
         self.lastFrame = np.array([])
         self.reconstruction = np.array([])
         self.scope = None
         self.minChange = None
+        self.path = path
+        config = np.fromfile('config_storage.bin', dtype=np.int16)
+        self.scope = [config[0], config[1]]
+        self.minChange = config[2]
 
-reconstruction = VideoReconstruction()
-reconstruction.start()
+#reconstruction = VideoReconstruction('./output/algo/')
+#reconstruction.getFiles()
+#reconstruction.getFileData()
+#reconstruction.showVideo()
+#reconstruction.start()
