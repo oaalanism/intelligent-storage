@@ -25,3 +25,8 @@ python3 launch_comparator.py [directory : optional]
 To highlight, directory must to have the structure described above in order to have a good operation of the programme. In the case that directory is not specified, the programme will search the last *output* directory.
 
 
+## Output stream 
+![alt text](pictures/stream_output.png)
+
+## MSD
+![alt text](pictures/MSD.png)
