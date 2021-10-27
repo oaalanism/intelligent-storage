@@ -9,9 +9,8 @@ import matplotlib.pyplot as plt
 class Comparator: 
 
     def meanSquareDeviation(self, frameReference, frameConstruit):
-        n = frameReference.size
-        divi = np.ones((frameReference.shape))*1000
-        diff = (frameReference - frameConstruit) / divi
+        n = frameReference.shape[0] * frameReference.shape[1]
+        diff = (frameReference - frameConstruit)*0.001
         pot = np.power(diff, 2)
         sum = np.sum(pot, dtype=np.float64)
         msd = sum /n
@@ -35,7 +34,7 @@ class Comparator:
         for i in range(t):
             msd = self.meanSquareDeviation(referenceFrames[i], contructionFrames[i])
             msdFrames.append(msd)
-
+            
         return msdFrames 
     
     def plotMSD(self):
@@ -45,6 +44,8 @@ class Comparator:
         plt.plot(xRV, self.msdRawVideo, 'g')
         plt.legend(['MSD Raw-Algorithme', 'MSD Raw-Video'])
         plt.title("MSD")
+        plt.xlabel("frame")
+        plt.ylabel("MSE")
         plt.show()
 
     def start(self):

@@ -16,3 +16,4 @@ videoPath = outputPath + "video/"
 
 comparator = Comparator(rawDataPath, algoPath, videoPath)
 comparator.start()
+comparator.algoReader.showVideo()

@@ -6,28 +6,24 @@ import numpy as np
 import pyrealsense2 as rs
 from matplotlib import pyplot as plt
 from matplotlib import cm as cm
+from colorizeDepthImage import ColorizeDepthImage
 
 class VideoReconstruction:
 
     def show(self):
-        qm = plt.pcolormesh(self.frame, cmap='nipy_spectral', vmin=0, )
-        rgba = qm.to_rgba(qm.get_array().reshape(self.frame.shape))
-        cv2.imshow("Depth Stream", rgba)
+        depth_colorized = self.colorize.appplyColorization(self.frame, 0, self.scope[1])
+        cv2.imshow("Depth Stream", depth_colorized)
         key = cv2.waitKey(1)
-        # if pressed escape exit program
         if key == 27:
             cv2.destroyAllWindows()
-        #plt.show()
 
     def construct(self):
         
         if self.lastFrame.size == 0:
             self.lastFrame = self.frame
-            self.reconstruction = self.frame
         else:
-            reconstruction = np.where(self.frame == 0, self.lastFrame, self.frame)
-            self.lastFrame = reconstruction
-            self.frame = reconstruction
+            one_sparse = self.frame.sign()
+            self.lastFrame = self.lastFrame - self.lastFrame.multiply(one_sparse) + self.frame 
 
     def getFiles(self):
         self.files = [self.path + f for f in os.listdir(self.path)]
@@ -36,9 +32,9 @@ class VideoReconstruction:
     def getFileData(self):
         self.sparce_frames = []
         for file in self.files:
+            print(file)
             frameSparse = scipy.sparse.load_npz(file)
-            frame =np.array(frameSparse.toarray())
-            self.sparce_frames.append(frame)
+            self.sparce_frames.append(frameSparse)
 
     def buildDepthFrames(self):
         self.depth_frames = []
@@ -49,7 +45,7 @@ class VideoReconstruction:
     
     def showVideo(self):
         for frame in self.depth_frames:
-            self.frame = frame
+            self.frame = np.array(frame.toarray(), dtype="uint32")
             self.show()
 
     def start(self):
@@ -64,12 +60,7 @@ class VideoReconstruction:
         self.scope = None
         self.minChange = None
         self.path = path
-        config = np.fromfile('config_storage.bin', dtype=np.int16)
+        config = np.fromfile('config_storage.bin', dtype='int32')
         self.scope = [config[0], config[1]]
         self.minChange = config[2]
-
-#reconstruction = VideoReconstruction('./output/algo/')
-#reconstruction.getFiles()
-#reconstruction.getFileData()
-#reconstruction.showVideo()
-#reconstruction.start()
+        self.colorize = ColorizeDepthImage()

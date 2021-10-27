@@ -39,9 +39,7 @@ class ColorizeDepthImage:
         return image
 
     def appplyColorization(self, frame, d_min, d_max):
-
         d_normal = (frame / d_max) * 1529
-
         self.depth_color_image = self.buildImage(d_normal)
         return self.depth_color_image
 
