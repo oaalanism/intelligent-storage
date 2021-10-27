@@ -6,7 +6,7 @@ import numpy as np
 import pyrealsense2 as rs
 from matplotlib import pyplot as plt
 from matplotlib import cm as cm
-from colorizeDepthImage import ColorizeDepthImage
+from classes.colorizeDepthImage import ColorizeDepthImage
 
 class VideoReconstruction:
 
@@ -32,7 +32,6 @@ class VideoReconstruction:
     def getFileData(self):
         self.sparce_frames = []
         for file in self.files:
-            print(file)
             frameSparse = scipy.sparse.load_npz(file)
             self.sparce_frames.append(frameSparse)
 

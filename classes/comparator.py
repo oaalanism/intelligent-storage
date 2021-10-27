@@ -1,8 +1,7 @@
 import numpy as np
-import sys
-from videoReconstruction import VideoReconstruction
-from decoderDepthColorized import DecoderDepthColorized
-from rawDataReader import RawDataReader
+from classes.videoReconstruction import VideoReconstruction
+from classes.decoderDepthColorized import DecoderDepthColorized
+from classes.rawDataReader import RawDataReader
 import matplotlib.pyplot as plt
 import os
 

@@ -13,4 +13,3 @@ if len(sys.argv) > 1:
 
 comparator = Comparator(outputPath)
 comparator.start()
-comparator.algoReader.showVideo()

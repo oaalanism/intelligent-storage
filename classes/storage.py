@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.sparse
 import cv2
-from colorizeDepthImage import ColorizeDepthImage
+from classes.colorizeDepthImage import ColorizeDepthImage
 import os
 
 class Storage: 
