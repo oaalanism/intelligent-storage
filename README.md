@@ -28,5 +28,6 @@ To highlight, directory must to have the structure described above in order to h
 ## Output stream 
 ![alt text](pictures/stream_output.png)
 
+
 ## MSD
 ![alt text](pictures/MSD.png)
