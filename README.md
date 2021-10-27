@@ -14,7 +14,7 @@ To launch compression :
 python3 launch_stream.py
 ```
 
-Once the data is stored, the reliability of the representations can be analysed. To compare it, the mean squared error with the *raw-sparse data* and *raw-video data*. 
+Once the data is stored, the reliability of the representations can be analysed. To compare it, the mean squared error with the *raw-sparse data* and *raw-video data* is calculated. 
 
 To launch comparation : 
 
