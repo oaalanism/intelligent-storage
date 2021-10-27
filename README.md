@@ -4,9 +4,9 @@ This is a project developed to compress depth data frames from the camera IntelR
 
 The program convert depth data into three representations : 
 
-* Raw Data -> ./output.v{*last version*}/raw_data/
-* Sparse matrix -> ./output.v{*last version*}/algo/
-* RGB Video -> ./output.v{*last version*}/video/
+* Raw Data -> ./ output.v{*last version*} / raw_data /
+* Sparse matrix -> ./ output.v{*last version*} / algo /
+* RGB Video -> ./ output.v{*last version*} / video /
 
 To launch compression : 
 
