@@ -1,4 +1,4 @@
-from videoReconstruction import VideoReconstruction
+from classes.videoReconstruction import VideoReconstruction
 
 reconstruction = VideoReconstruction('./output/algo/')
 reconstruction.start()

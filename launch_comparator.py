@@ -1,4 +1,4 @@
-from comparator import Comparator
+from classes.comparator import Comparator
 import sys
 """
 
