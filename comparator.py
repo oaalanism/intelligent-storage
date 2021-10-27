@@ -4,6 +4,7 @@ from videoReconstruction import VideoReconstruction
 from decoderDepthColorized import DecoderDepthColorized
 from rawDataReader import RawDataReader
 import matplotlib.pyplot as plt
+import os
 
 
 class Comparator: 
@@ -58,7 +59,27 @@ class Comparator:
         self.plotMSD()
         #x = str(input("Tap anything to scape"))
 
-    def __init__(self, rawDataPath, algoPath, videoPath):
+    def getLastOuputDir(self):
+        dirs = []
+        for dir in os.listdir("."):
+            if (dir.find("output.v") != -1):
+                dirs.append(dir)
+        last = 1
+        if len(dirs) > 0:
+            dirs = sorted(dirs, key=lambda x: float(x.split("v")[1]))
+            last = int(dirs[len(dirs)-1].split("v")[1])
+
+        return "./output.v"+str(last)+"/"
+
+    def __init__(self, outputPath = None):
+
+        if outputPath == None :
+            print("Getting last output directory")
+            outputPath = self.getLastOuputDir()
+        
+        rawDataPath = outputPath + "raw_data/"
+        algoPath = outputPath + "algo/"
+        videoPath = outputPath + "video/"
         self.rawDataReader = RawDataReader(rawDataPath)
         self.algoReader = VideoReconstruction(algoPath)
         self.videoReader = DecoderDepthColorized(videoPath)

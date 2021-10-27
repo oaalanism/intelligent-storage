@@ -45,6 +45,6 @@ class DecoderDepthColorized:
     def __init__(self, videoPath):
         video = videoPath + "stream.avi"
         config = np.fromfile('config_storage.bin', dtype='int32')
-        self.d_min = 0
+        self.d_min = config[0]
         self.d_max = config[1]
         self.video = video
