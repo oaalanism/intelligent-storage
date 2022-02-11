@@ -2,6 +2,22 @@ import numpy as np
 import cv2
 
 class DecoderDepthColorized:
+    """
+    Object Comparator compare precition between three representations
+    ------ Raw Data ------------------------
+    ------ Colorized Depth frame -----------
+    ------ Matrix sparse -------------------
+
+    This Object use MSD as parameter. 
+
+    Where data reference is Raw Data representation
+    At the end this object shows a graph with this parameter for each frame.
+
+    Parameters
+    ----------
+        output_path : Str
+            Repository to get data 
+    """
 
     def buildImage(self, frame):
         """
