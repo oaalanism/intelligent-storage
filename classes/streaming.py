@@ -6,63 +6,33 @@ from classes.storage import Storage
 
 class Streaming: 
 
-    def showFrame(self, depth_color_image):
-        cv2.imshow("Depth Stream", depth_color_image)
-        key = cv2.waitKey(1)
-        # if pressed escape exit program
-        if key == 27:
-            cv2.destroyAllWindows()
-            
-    
+    """
+    The streaming object has the objectif of stream data for 60 senconds from camera Intel RealSense D455 
 
-    def start(self):
-        try:
-            self.pipeline.start(self.config)
-            nb_frame = 0
+    Camera might be connected by an USB, otherwise stream will return "No device detected"
 
-            cv2.namedWindow("Depth Stream", cv2.WINDOW_AUTOSIZE)
-            colorizer = rs.colorizer()
+    This object use Storage object to store depth data  
 
-            begin = time.time()
-            end = begin
-            current = int(end - begin)
-            while current <= 60:
-                if(int(end - begin) - current >= 1 ):
-                    current = int(end - begin)
-                    print("Time: " + str(int(end - begin)))
-                frames = self.pipeline.wait_for_frames()
+    Parameters
+    ----------
 
-                depth = frames.get_depth_frame() # composite_frame
-            
-                
-                if not depth: continue
-                else:
-                    #depth_color_frame = colorizer.colorize(depth)
-                    #depth_color_image = np.asanyarray(depth_color_frame.get_data())
-                                        
-                    self.storage.setFrame(np.asanyarray(depth.get_data(), dtype=np.int32))
-                    #depth_color_image = self.storage.appplyColorization()
-                    #self.storage.setColorizeDepth(depth_color_image=depth_color_image)
-                    self.storage.store(current, nb_frame)
-                    depth_color_image = self.storage.depth_color_image
-                    self.showFrame(depth_color_image)
+    size : Array 
+        This arguments is the dimention of the image, this information is necessary for others objects.
+        One dimention array with two variables, first variable is the width and second is the lenght of an image
 
-                    nb_frame = nb_frame + 1
+    scope : Array
+        Scope is a parameter necessary to set the scope depth data to store
+        One dimention array with two variables, first argument set min distance and second max distance
 
-                end = time.time()
+    min_change : Int
+        Set smallest difference between two pixels to consider that they have changed
+        This values is defined in mm (1m ~= 1000mm)
 
-            self.storage.stopRecordinfVideo()
-        except Exception as e:
-            print(e)
-            pass
+    nb_pixels_max : Int 
+        Set the minimum number of pixels changed to consider that an image is different from other.
+    """
 
-
-    def __init__(self, size, scope, minChange):
-        """
-            size: width, height
-            scope: minSocpe, maxScope in mm
-            min change in mm
-        """
+    def __init__(self, size, scope, min_change, nb_pixels_max):
 
         self.verboseA = False
         self.width = size[0]
@@ -73,8 +43,101 @@ class Streaming:
         if listDevices == 0:
             print("No device detected")
         else:
-            self.pipeline = rs.pipeline()
-            self.config = rs.config()
-            self.config.enable_stream(rs.stream.depth, self.width, self.height, rs.format.z16, 30)
-            self.storage = Storage([self.width, self.height], 5000, scope, minChange)
-            self.parameters = [False, '7', '5', False, 500.0, 20000.0, 2000.0, 10000000.0, True, False, 0.7, 0.0, True, True, 0.3, 0.3, True, True, 0.45, 0.2, '30', ([0, 0],[212, 0],[212, 90], [180, 50], [40, 50],[0, 90]), ([0, 100], [40, 60], [172, 60], [212, 100], [212, 120], [0, 120]), ([-5,-5],[216,-5],[216,50],[-5,50]), ([-5,51],[216,51],[216,125],[-5,125]), (20,20,0), (35,30,0), '40']
+            self.size = size
+            self.scope = scope
+            self.min_change = min_change
+            self.nb_pixels_max = nb_pixels_max
+            self.start()
+            
+    def showFrame(self, depth_color_image):
+
+        """
+        colour depth camera frame display function
+
+        Parameters
+        ----------
+        depth_color_image : numpy 
+            3D dimentional array to represent colorized image
+
+        Raises
+        ------
+
+        Returns
+        -------
+
+        """
+        
+        cv2.imshow("Depth Stream", depth_color_image)
+        key = cv2.waitKey(1)
+        # if pressed escape exit program
+        if key == 27:
+            cv2.destroyAllWindows()
+            
+    
+
+    def start(self):
+        """
+        Function to start streaming
+
+        Parameters
+        ----------
+
+        Raises
+        ------
+
+        ImportError
+            cannont import rs
+
+        Returns
+        -------
+        
+        """
+        try:
+            pipeline = rs.pipeline()
+            config = rs.config()
+            config.enable_stream(rs.stream.depth, self.width, self.height, rs.format.z16, 30)
+            storage = Storage(self.size, self.nb_pixels_max, self.scope, self.min_change)
+
+            pipeline.start(config)
+            nb_frame = 0
+            #dec_filter = rs.decimation_filter ()    
+            
+            colorizer = rs.colorizer()
+
+            begin = time.time()
+            end = begin
+            current = int(end - begin)
+            while current <= 60:
+                if(int(end - begin) - current >= 1 ):
+                    current = int(end - begin)
+                    print("Time: " + str(int(end - begin)))
+                frames = pipeline.wait_for_frames()
+
+                depth = frames.get_depth_frame() # composite_frame
+                #depth = dec_filter.process(depth)
+                
+                if not depth: continue
+                else:
+                    
+                    storage.setFrame(np.asanyarray(depth.get_data(), dtype=np.int32))
+
+                    storage.store(current, nb_frame)
+                    depth_color_image = storage.depth_color_image
+                    depthI = np.asanyarray(colorizer.colorize(depth).get_data())
+                    depthI = cv2.cvtColor(depthI,cv2.COLOR_BGR2RGB)
+                    
+                    storage.depth_color_image = depth_color_image
+                    storage.storeVideo()
+                    self.showFrame(depthI)
+
+                    nb_frame = nb_frame + 1
+
+                end = time.time()
+
+            storage.stopRecordinfVideo()
+        except Exception as e:
+            print(e)
+            pass
+
+
+    

@@ -8,6 +8,30 @@ import os
 
 class Comparator: 
 
+    """
+    Object Extractor extract detection from a set of depth data to save each one in a csv file with path ./data/detection/vXX/vXX.csv
+    And a video of depth grey frame with detections
+
+    
+    The data saved is :
+        Number of version
+        Number of image
+        Person id
+        x coordinate center of the bounding box detection
+        y coordinate center of the bounding box detection 
+        width of bounding box
+        heigt of bounding box
+        maximum distance of detection
+    
+
+    Parameters
+    ----------
+        version : Int
+            Number of data version to detect people
+        nb_ref_frame : Int
+            Reference number of frame to extract background
+    """
+
     def meanSquareDeviation(self, frameReference, frameConstruit):
         n = frameReference.shape[0] * frameReference.shape[1]
         diff = (frameReference - frameConstruit)*0.001
