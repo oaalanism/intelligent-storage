@@ -8,7 +8,28 @@ from classes.outils import Outils
 from scipy.ndimage.measurements import label
 
 class ImageOutils:
+    """
+    Image Outils object has a set of function to manipulate the images
+   
+    Parameters
+    ----------
+    """
+    
+    def __init__(self):
+        self.colorizer = ColorizeDepthImage()
+        
     def getGrayFrame(self, depth_frame):
+        """
+        This function transform depth frame into gray image
+        Parameters
+        ----------
+            depth_frame : Array
+                Depth frame
+        Returns
+        -------
+            depth_frame_gray : Array
+                Depth frame transformed in gray image
+        """
         depth_frame_colorizer = self.colorizer.appplyColorization(depth_frame, 0, 3000)
     
         depth_frame_gray = cv.cvtColor(depth_frame_colorizer, cv.COLOR_RGB2GRAY)
@@ -16,12 +37,34 @@ class ImageOutils:
         return depth_frame_gray
 
     def getGrayFrame3D(self, depth_frame):
+        """
+        Function to obtain a three-dimentional gray image. This image is used to draw bounding boxes
+        Parameters
+        ----------
+            depth_frame : Array
+                Depth frame
+        Returns
+        -------
+            depth_frame_gray_3D : Array
+                Gray depth image
+        """
         depth_frame_gray = self.getGrayFrame(depth_frame)
         depth_frame_gray_3D = np.stack([depth_frame_gray, depth_frame_gray,depth_frame_gray], axis=-1)
         return depth_frame_gray_3D
 
 
     def transformRedToBlack(self, depth_frame_colorizer_):
+        """
+        this function is used to blacken background of the colored image background after background supression
+        Parameters
+        ----------
+            depth_frame_colorizer_ : Array
+                colored depth frame
+        Returns
+        -------
+            depth_frame_colorizer_ : Array
+                colored depth frame with black background
+        """
         r = depth_frame_colorizer_[:,:,2]
         b = depth_frame_colorizer_[:,:,1]
         g = depth_frame_colorizer_[:,:,0]
@@ -31,6 +74,22 @@ class ImageOutils:
         return depth_frame_colorizer_
 
     def extractDepth(self, depth_boolean, depth_frame, pixel):
+        """
+        This function calculates the labeling of a depth chart to segment it.
+        Parameters
+        ----------
+            depth_boolean : Array
+                Depth indicates pixels to save
+            depth_frame : Array
+                Original depth frame
+            pixel : Array
+                Coordinates of highest value
+        Returns
+        -------
+            depth_frame_ : Array
+                Segmented depth frame
+        """
+        
         i = pixel[0]
         j = pixel[1]
         depth_frame_ = np.where(depth_boolean, depth_frame, 0)
@@ -52,6 +111,19 @@ class ImageOutils:
         return depth_frame_
 
     def segmentation(self, depth_frame):
+        """
+        This function segments depth frame of a detection to get head and body
+        Parameters
+        ----------
+            depth_frame : Array
+                Depth frame detection
+        Returns
+        -------
+            depth_frame_head : Array
+                Depth frame corresponding to head detection
+            depth_frame_body : Array
+                Depth frame corresponding to body detection
+        """
         depth_frame = cv.medianBlur(depth_frame.astype(np.float32),3)
         hight = np.amax(depth_frame)
         highestPixel = np.where(depth_frame == hight)
@@ -78,6 +150,21 @@ class ImageOutils:
 
 
     def extractContour(self, frame, min_val, max_val):
+        """
+        Function to extract contour of an image
+        Parameters
+        ----------
+            frame: Array
+                Depth frame image
+            min_val: Int
+                Minimum value in the depth frame
+            max_val: Int
+                Maximum value in the depth frame
+        Returns
+        ---------
+            cnt: Array
+                Contours of depth image
+        """
         
         ret, thresh = cv.threshold(frame, 29, 255, 0)
         
@@ -98,6 +185,20 @@ class ImageOutils:
         return cnt
 
     def extractBackground(self, reference_depth_frame, depth_frame):
+        """
+        This function removes background from an image using a frame reference
+        
+        Parameters
+        ----------
+            reference_depth_frame: Array
+                Depth reference frame
+            depth_frame : Array
+                Depth frame to remove background
+        Returns
+        ---------
+            depth_frame : Array
+                Depth frame without beckground
+        """
         depth_diference = np.abs(depth_frame - reference_depth_frame)
         depth_frame = np.where(depth_diference > 500, depth_frame, 0)
 
@@ -116,5 +217,4 @@ class ImageOutils:
 
         return depth_frame
 
-    def __init__(self):
-        self.colorizer = ColorizeDepthImage()
+    
