@@ -44,19 +44,19 @@ class ExtractorFeatures:
 
     def extractEntropy(self, frame_gray):
     """
-    This function extract entropy from a grey image created from a depth frame, this image is the head 
+    This function extracts the entropy of a gray image created from a depth frame, this image is the head. 
     
     
-    In a few words, the function extracts the cooccurrence matrix and computes the entropy
+    In a nutshell, the function extracts the cooccurrence matrix and calculates the entropy
 
     Parameters
     ----------
     	frame_gray : Array
-		Frame grey building from depth image
+		gray frame constructed from the depth image.
     Return
     ----------
     	ent : Float
-		Entropy of a frame grey
+		Entropy of a gray frame
     """
 
         glcm = greycomatrix(frame_gray, [1], [0], 256, True)
@@ -71,17 +71,22 @@ class ExtractorFeatures:
     """
     This function calculates the local binary patterns of a gray depth frame.
     LBPs are a texture descriptor, this function uses an extension of the original algorithm to consider more details in the image.
-    The algorithm follows the following steps:
-    - Convert image to grayscale
-    - Call local_binary_pattern function
+    To get this descriptor local_binary_pattern function is used
+    
+    For more information consult the next article : https://www.pyimagesearch.com/2015/12/07/local-binary-patterns-with-python-opencv/
+    	
     Parameters
     ----------
-    	frame_gray : Array
+    	depth_gray : Array
 		Gray head person frame
+	numPoints : Int 
+		Parameter of the local_binary_pattern function, this parameter indicates the number of pixels to be considered during the algorithm.
+	radius : Int
+		Parameter of the local_binary_pattern function, maximum radius of pixels to be calculated
     Return
     ----------
-    	ent : Float
-		Entropy of head person
+    	hist : Array
+		Histogram of LBP values
     """
 
         #cv.imshow("head", depth_gray)
@@ -101,6 +106,20 @@ class ExtractorFeatures:
 
 
     def findCrosse(self, sigma, curvature, CSS):
+	"""
+   	Function that find crosse zero points in the curvature 
+    	
+    	Parameters
+    	----------
+		curvature: Array
+			curve evolution
+		CSS: Array
+			the zero crossing from other old sigmas
+    	Return
+    	----------
+    		CSS: Array
+			the zero crossing updated
+    	"""
         for i in range(0, curvature.size - 2):
             if (curvature[i] < 0.0 and curvature[i + 1] > 0.0) or (curvature[i] > 0.0 and curvature[i + 1] < 0.0):
                 row = int(CSS.shape[0] - 10*sigma - 1)
@@ -109,6 +128,26 @@ class ExtractorFeatures:
         return CSS
 
     def parametrizeCurvature(self, X, x0, Y, y0):
+	"""
+   	Function that parametrize contour curvature 
+    	
+    	Parameters
+    	----------
+    		X: Array
+			X coordinates of cuvarture
+		x0: Int
+			x0 coordinate of center of the curvature
+		Y: Array
+			Y coordinates of cuvarture
+		y0: Int
+			y0 coordinate of center of the curvature
+    	Return
+    	----------
+    		r: Array
+	 		r values of the parametrization
+		theta: Array
+			theta values of the parametrization
+    	"""
         theta_poly = np.arctan2(Y - y0, X - x0)
         r_poly = np.sqrt((X - x0)**2 + (Y - y0)**2)
 
@@ -122,6 +161,49 @@ class ExtractorFeatures:
         return r, theta
 
     def extractCurvatureScaleSpace(self, X, Y, x0, y0, shape, sigmaStart=0, sigmaEnd=0.6, sigmaStep=0.1, show=False):
+    	"""
+   	This function calculates Curvature Scale Space feature. This feature is inspired from the next articles :
+	
+	-----------------------https://vgg.fiit.stuba.sk/2013-04/css-%E2%80%93-curvature-scale-space-in-opencv/-------------------------------------
+	-----------------------http://home.iitk.ac.in/~amit/courses/768/99/gunjan/#method-----------------------------------------------------------
+   
+   	This function follows the next steps :
+		- Curvature of the contours is parametrized in the variables radius and theta. It is a simple transformation from Cartesian to polar coordinates.
+		- Next, the Gaussian kernel is calculated
+		- Curve evolution is computed by convolution of countour points with Gaussian Kernel
+		- The derivates of the Gaussian kernel are computed to obtain 1st and 2nd derivation of contour points
+		- 1st and 2nd derivation of contour points are calculated by convolution of coordinates with derivates of the Gaussian kernel.
+		- The curvature is calculated and the zero crossings are found.
+		- Then zero-croissing points are plotted 
+		- Finally, the maximas of the zero-croissing are obtained
+    	
+    	Parameters
+    	----------
+    		X: Array
+			X coordinates of cuvarture
+		Y: Array
+			Y coordinates of cuvarture
+		x0: Int
+			x0 coordinate of center of the curvature
+		y0: Int
+			y0 coordinate of center of the curvature
+		shape: Array
+			shape of depth frame
+		sigmaStart: Float
+			Value to start sigma value
+		sigmaEnd: Float
+			Value to end sigma value
+		sigmaStep: Float
+			Step of evolution of sigma
+		show: Bool
+			Variable indicating if the function shows the evolution of the curvature and the evolution of the zero crossing.
+    	Return
+    	----------
+    		maximas: Array
+	 		Maximas of non-zero curvature evolution
+		CSS_image: Array
+			Curvature Scale Space image of zero crossing curvature evolution
+    	"""
         r,theta = self.parametrizeCurvature(X, x0, Y, y0)
 
         sigmas = np.linspace(sigmaStart, sigmaEnd, int(sigmaEnd/sigmaStep))
@@ -178,6 +260,23 @@ class ExtractorFeatures:
 
 
     def getArea(self, depth_frame_gray):
+    	"""
+   	This function calculates the area of the current segmented frame.
+   
+   	This function follows the following steps: 
+   		- Extraction of the contours from the gray image.
+		- With the contours the area is calculated with the contourArea function.
+    	
+    	Parameters
+    	----------
+    		depth_frame_gray : Matrix
+			Segmented detection depth frame transformed into a gray image. 
+    	Return
+    	----------
+    		area : Float
+	 		Area of the segmented detection
+    	"""
+		
         min_val = np.amin(depth_frame_gray)
         max_val = np.amax(depth_frame_gray)
         cnt = self.imageOutils.extractContour(depth_frame_gray, min_val, max_val)
@@ -188,16 +287,20 @@ class ExtractorFeatures:
 
     def extractMaxAndMinDistances(self, depth_frame):
         """
-        outils = Outils()
-        distancesMinorMajor = outils.getDistances(depth_frame)
-        highestPixel = outils.findHighestPixel(depth_frame, distancesMinorMajor, 20)
+        Function to obtain maximum and minimum distance in a depth segmented frame
+    	
+        Parameters
+        ----------
+    		depth_frame : Array
+			Current detection depth frame
+    	Return
+    	----------
+    		min_distance : Int
+	 		Minimum non-zero distance in the segmented depth frame.
+	 	max_distance : Int
+	 		Maximum distance in the segmented depth frame.
 
-        distancesMajorMinor = outils.getDistances(depth_frame, True)
-        minustPixel = outils.findHighestPixel(depth_frame, distancesMajorMinor, 20)
-
-        min_distance = minustPixel[2]
-        max_distances = highestPixel[2]
-        """
+    	"""
         if(np.count_nonzero(depth_frame) > 0):
             max_distance = np.amax(depth_frame)
             min_distance = np.amin(depth_frame[np.where(depth_frame != 0)])
@@ -208,6 +311,30 @@ class ExtractorFeatures:
 
 
     def extractFeatures(self, depth_frame):
+    """
+    Main function that extracts all the features of a detection frame
+    Before extracting the features, the detection is segmented into two parts: the head and the body, which are treated separately.
+    	
+    Parameters
+    ----------
+    	depth_gray : Array
+		Gray segmented frame head or body
+    Return
+    ----------
+    	 min_distance : Int
+	 	Min distance different of zero in the segmented depth frame. For more information read description of extractMaxAndMinDistances function
+	 max_distance : Int
+	 	Max distance in the segemented depth frame. For more information read description of extractMaxAndMinDistances function
+	 area: Int 
+	 	Area of segmented depth frame. For more information read description of getArea function
+	 maximas: Array
+	 	Maximas coordinates in the CSS image. For more information read description of extractCurvatureScaleSpace function
+	 entropy: Float
+	 	Entropy of depth image. For more information read description of extractEntropy function
+	 depth_vector : Array
+	 	Depth vector of the depth frame. For more information read description of extractDepthFeatures function
+
+    """
         depth_frame_gray_3D = self.imageOutils.getGrayFrame3D(depth_frame)
         cnt = self.imageOutils.extractContour(depth_frame_gray_3D)[0]
         approx = cv.approxPolyDP(cnt, 0.00001  * cv.arcLength(cnt, True), True)
