@@ -7,8 +7,37 @@ from classes.detection import Detection
 from classes.outils import Outils
 
 class HungarianAlgorithme:
-
+    """
+    The Hungarian Algortihm object implemnt Hungarian algorithm for a set of trackers and detections to obtain the id association
+    
+    Object returns updated trackings
+    
+    Parameters
+    ----------
+    """
+    def __init__(self):
+        self.tracking = []
+        self.outils = Outils()
+        self.id = 1
+    
     def hungarian(self, trackers, detections):
+        """
+        This function calculates IoU between each tracker and detection
+        Parameters
+        ----------
+            trackers: Tracker Object
+                Set of object trackers to calculate IoU
+            detections: Array
+                Set of array with the bounding boxes of detections  
+        Returns
+        -------
+            matched_idx: Array
+                Tracker's ID matched with detections
+            unmatchedTrackers: Array
+                Trackers not associated with a new detection
+            unmatchedDetections: Array
+                New Detections
+        """
         nbDetections = len(detections)
         nbTrackers = len(trackers)
 
@@ -127,8 +156,3 @@ class HungarianAlgorithme:
             self.updateTrackings(detections, candidates)
 
         return self.tracking
-
-    def __init__(self):
-        self.tracking = []
-        self.outils = Outils()
-        self.id = 1
