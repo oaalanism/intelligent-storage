@@ -14,9 +14,27 @@ from skimage.measure import shannon_entropy
 from skimage import feature
 
 class ExtractorFeatures:
-
+    """
+    This object extract features from bounding boxes detections
+    Parameters
+    ----------
+    """
+	
+    def __init__(self):
+        self.imageOutils = ImageOutils()
 
     def extractDepthFeatures(self, depth_frame):
+    """
+    This function extract depth vector features defined in the article "People re-identification using depth and intensity information from an overhead camera"
+    
+    The algorithm works according to the following steps :
+    	- Group the pixels into 20 slides with a difference of 2cm. The first slide starts with the highest value of the frame.
+	- The depth vector has 4 variables with the number of pixels in a group of 5 slides.
+    Parameters
+    ----------
+    	depth_frame : Array
+		Depth frame to extract this feature
+    """
         highest_distance = np.amax(depth_frame)
         d = np.zeros(4)
         for i in range(4):
@@ -25,6 +43,21 @@ class ExtractorFeatures:
         return d
 
     def extractEntropy(self, frame_gray):
+    """
+    This function extract entropy from a grey image created from a depth frame, this image is the head 
+    
+    
+    In a few words, the function extracts the cooccurrence matrix and computes the entropy
+
+    Parameters
+    ----------
+    	frame_gray : Array
+		Frame grey building from depth image
+    Return
+    ----------
+    	ent : Float
+		Entropy of a frame grey
+    """
 
         glcm = greycomatrix(frame_gray, [1], [0], 256, True)
         coorelation = glcm[:,:,0,0]
@@ -35,9 +68,26 @@ class ExtractorFeatures:
     
     def localBinaryPatterns(self, depth_gray, numPoints, radius, eps=1e-7):
 
+    """
+    This function calculates the local binary patterns of a gray depth frame.
+    LBPs are a texture descriptor, this function uses an extension of the original algorithm to consider more details in the image.
+    The algorithm follows the following steps:
+    - Convert image to grayscale
+    - Call local_binary_pattern function
+    Parameters
+    ----------
+    	frame_gray : Array
+		Gray head person frame
+    Return
+    ----------
+    	ent : Float
+		Entropy of head person
+    """
+
         #cv.imshow("head", depth_gray)
         #cv.waitKey(1000)
-        lbp = feature.local_binary_pattern(depth_gray, numPoints, radius, method="uniform")
+	glcm = greycomatrix(depth_gray, [1], [0], 256, True)
+        lbp = feature.local_binary_pattern(glcm, numPoints, radius, method="uniform")
         (hist, _) = np.histogram(lbp.ravel(), bins=np.arange(0, numPoints + 3), range=(0, numPoints + 2))
         #plt.hist(hist)
         #plt.show()
@@ -180,5 +230,3 @@ class ExtractorFeatures:
         depth_vector = self.extractDepthFeatures(depth_frame, min_distance)
         
         return min_distance, max_distance, area, maximas, entropy, depth_vector
-    def __init__(self):
-        self.imageOutils = ImageOutils()
