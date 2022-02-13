@@ -34,7 +34,39 @@ VERSIONS = {
 
 
 class ExtractorTrainingData:
+    """
+    The training data extractor object extracts the data features from each detection and stores them in a csv file.
+    Before extracting the features from the data, each detection must have the global identification of each person. These tags are added manually by the programmer.
+    
+    Feature extracted is:
+        id: global id of each detection
+        max_head: maximum head distance
+        min_head: minimum head distance
+        max_body: maximum body distance
+        min_body: minimum body distance
+        entropy: head entropy
+        depth_vector_1: first component of the depth vector feature
+        depth_vector_2: second component of the depth vector feature
+        depth_vector_3: third component of the depth vector feature
+        depth_vector_4: fourth component of the depth vector feature
+        area_head: Head area
+        area_body: Body area
+        local_binary: head local binary
+    
+    Parameters
+    ----------
+    """
+    def __init__(self) -> None:
+        self.trainingDirectory = "./data/detection/"
+        if(not(os.path.isdir(self.trainingDirectory))):
+            print("Detections directory doesn't exist")
+            sys.exit()
+        else:
+            
+            self.getDetections()
+            #self.extractFeaturesFromDetections()
 
+    """
     def extractFeaturesFromDetections(self):
         print("Extracting Features...")
 
@@ -46,7 +78,7 @@ class ExtractorTrainingData:
         extractorFeatures = ExtractorFeatures()
         imgOutils = ImageOutils()
         for version in versions:
-            algoDirectory = "./output.v"+str(version)+"/algo/"
+            algoDirectory = "./output/v"+str(version)+"/algo/"
             algoReader = VideoReconstruction(algoDirectory)
             depth_frames = algoReader.start()
             detections = self.data_file[np.where(self.data_file[:,0] == version)]
@@ -71,9 +103,18 @@ class ExtractorTrainingData:
                 #min_distance, max_distance, area, maximas, entropy, depth_vector = extractorFeatures.extractFeatures(boundingBox)
                 #print(min_distance)
 
-
+    """
 
     def getDetections(self):
+        """
+        This function reads the detections of each version to extract the features for re-identification which are stored in a csv file.
+        
+        Parameters
+        ----------
+        Returns
+        -------
+        
+        """
         print("Extracting data...")
         f = open('./data/features.csv', 'w')
         writer = csv.writer(f)
@@ -89,7 +130,7 @@ class ExtractorTrainingData:
             nbVersion = int(version.split("v")[1])
             nb_reference = VERSIONS[nbVersion]
             print(nbVersion)
-            algoDirectory = "./output."+str(version)+"/algo/"
+            algoDirectory = "./output/"+version+"/algo/"
             algoReader = VideoReconstruction(algoDirectory)
             depth_frames = algoReader.start()
             reference_depth = np.array(depth_frames[nb_reference].toarray(), dtype="float64")
@@ -345,13 +386,3 @@ class ExtractorTrainingData:
         #data_features = sorted(data_features, key=lambda x:x[0])
         writer.writerows(data_features)
         self.data_file = np.array(self.data_file)
-
-    def __init__(self) -> None:
-        self.trainingDirectory = "./data/detection/"
-        if(not(os.path.isdir(self.trainingDirectory))):
-            print("Detections directory doesn't exist")
-            sys.exit()
-        else:
-            
-            self.getDetections()
-            #self.extractFeaturesFromDetections()
