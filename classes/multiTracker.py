@@ -4,7 +4,34 @@ from classes.tracker import Tracker
 from classes.hungarianAlgortihme import HungarianAlgorithme
 
 class MultiTracker:
+    """
+    This object is a multy tracking that use Kalman Filter and Hungarian Algorithm 
+     
+    
+     Parameters
+     ----------
+       nbImage: Int
+            Image number where tracking begins
+     """
+    
+    def __init__(self, nbImage = 0):
+        self.id = 1
+        self.trackers = []
+        self.nbImage = nbImage
+        self.hungarianAlgorithme = HungarianAlgorithme()
+        
     def updateTrackerNotDetected(self, tracker):
+        """
+        Function to update tracker which has not been detected
+        If tracker has not been detected in 15 seconds then is deleted
+        Parameters
+        ---------
+        
+            tracker: Tracker Object
+                Tracker to update
+        Returns
+        ---------
+        """
         tracker.timesUndectected = tracker.timesUndectected + 1
         if tracker.timesUndectected > 15:
             tracker.delete(self.nbImage)
@@ -12,10 +39,34 @@ class MultiTracker:
             self.trackers.remove(tracker)
 
     def updateTrackersNotDetected(self, trackersNonDetected):
+        """
+            Function to loop in the list of trackers which have not detected to update them
+            Parameters
+            ---------
+                trackersNonDetected: Array of trackers objects
+                    List of trackers objects which have not detected
+            Returns
+            ----------
+        """
         for tracker in trackersNonDetected:
             self.updateTrackerNotDetected(tracker)
 
     def associateTrackers(self, detections):
+        """
+        Function that make association of trackers and detections
+        Parameters
+        ----------
+            detections: Array
+                Bounding boxes of detections in a frame
+        Returns
+        ---------
+            trackers: Array
+                List of tracker objects updated
+            trackersNotAssociated: Array
+                List of tracker objects that have not associated
+            detectionsNotAssociated: Array
+                List of detections thath have not associated
+        """
         detections = np.array(detections)
         trackersNotAssociated = []
         detectionsNotAssociated = detections
@@ -55,6 +106,15 @@ class MultiTracker:
         """
         
     def getPredictions(self):
+        """
+        Get predictions of Kalman Filters
+        Paramaters
+        ----------
+        Returns
+        ---------
+            predictions : Array
+                List of Kalman Filter predictions
+        """
         predictions = []
         for tracker in self.trackers:
             predictions.append(tracker.KalmanFilter.X_)
@@ -102,8 +162,3 @@ class MultiTracker:
         return self.trackers, self.nonDetected
         """
 
-    def __init__(self, nbImage = 0):
-        self.id = 1
-        self.trackers = []
-        self.nbImage = nbImage
-        self.hungarianAlgorithme = HungarianAlgorithme()
