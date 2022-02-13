@@ -3,25 +3,35 @@ import cv2
 
 class DecoderDepthColorized:
     """
-    Object Comparator compare precition between three representations
-    ------ Raw Data ------------------------
-    ------ Colorized Depth frame -----------
-    ------ Matrix sparse -------------------
-
-    This Object use MSD as parameter. 
-
-    Where data reference is Raw Data representation
-    At the end this object shows a graph with this parameter for each frame.
+    Decoder object transform matrix sparce representation in depth frames using recovery from colorized image
+    
+    --------------------------------https://dev.intelrealsense.com/docs/depth-image-compression-by-colorization-for-intel-realsense-depth-cameras----------------------
 
     Parameters
     ----------
-        output_path : Str
+        version_path : Str
             Repository to get data 
     """
+    
+    def __init__(self, version_path):
+        video = version_path + "/video/stream.avi"
+        config = np.fromfile(version_path+'config_storage.bin', dtype='int32')
+        self.d_min = config[0]
+        self.d_max = config[1]
+        self.video = video
 
     def buildImage(self, frame):
         """
-            frame: (bgr) numpy 3D
+        Function to build depth image from RGB videos
+        Parameters
+        ----------
+            frame : Array 
+                RGB frame
+        Returns
+        -------
+            d-recovery : Array
+                depth frame recovery
+        
         """
         #frame = frame.astype('int8')
         
@@ -36,31 +46,32 @@ class DecoderDepthColorized:
         d_recovery = self.d_min + (((self.d_max - self.d_min)/1529)*d_rnormal)
         return d_recovery
 
-
-    def transformVideoToNumpy(self):
-        self.frames = []
+    def transformFramesToDepth(self):
+        """
+        function to loop into frames video and transform it in depth frames
+         Parameters
+        ----------
+        Returns
+        -------
+        """
+        self.depth_frames = []
         cap = cv2.VideoCapture(self.video)
         success, image = cap.read()
         while success:
-            self.frames.append(image)
-            success, image = cap.read()
-            
-
-    def transformFramesToDepth(self):
-        self.depth_frames = []
-        for frame in self.frames:
-            depth_frame = self.buildImage(frame)
+            depth_frame = self.buildImage(image)
             self.depth_frames.append(depth_frame)
 
     def start(self):
-        self.transformVideoToNumpy()
+        """
+        Principal function to transform rgb representation
+        Parameters
+        ----------
+        Returns
+        -------
+        """
+        
         self.transformFramesToDepth()
 
         return self.depth_frames
 
-    def __init__(self, version_path):
-        video = version_path + "/video/stream.avi"
-        config = np.fromfile(version_path+'config_storage.bin', dtype='int32')
-        self.d_min = config[0]
-        self.d_max = config[1]
-        self.video = video
+    
