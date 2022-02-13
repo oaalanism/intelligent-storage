@@ -5,17 +5,59 @@ from classes.outils import Outils
 class Detector:
 
     """
-    Detector object implements algorithm of the article: "Robust People Detection Using Depth Information from an Overhead Time-of-Flight Camera"
-    To detect body area of people in a scene
+    The detector object implements the algorithm from the article "Robust detection of people using depth information from an aerial time-of-flight camera."
+    To detect the body area of people in a scene.
     
-    This article is in the directory Biblio/Re-identification
+    This article is in the Biblio/Reidentification directory.
     
 
-    In a few words the algorithm cut each frames in regions, depending of camera parameters and 
-    minimum distance to 
+    In a nutshell the algorithm slices each frame into regions, depending on the parameters of the camera and 
+    minimum distance to be detected, then it follows the following steps
+    - For each region the highest height is extracted.
+    - Candidates are the highest regions in a given neighborhood.
+    - Then, two or more candidates of a neighborhood are transformed into one.
+    - Calculation of the regions belonging to a person's body. 
+    - Estimation of the bounding box
+    
+    Parameters
+    ----------
+        FOCAL : Int
+            Focal camera
+        A : Int
+            pixel size of the camera.
+        L : Int
+            Lenght of minum object to detect
+        
+        HCAMERA : Int
+            Camera distance to ground        
+        HPMIN : Int
+            Minimum height of the object to be detected
     """
+    
+    def __init__(self, FOCAL, A, L, HCAMERA, HPMIN):
+        self.HCAMERA = HCAMERA
+        self.HPMIN = HPMIN
+        self.D = round((FOCAL/A) * (L/(HCAMERA - HPMIN)))
+        print(self.D )
+        #self.D = 10
+        self.delta_r = np.array([-1, 0, 1, 0, -1, 1, 1, -1])
+        self.delta_c = np.array([0, 1, 0, -1, 1, 1, -1, -1])
+        self.outils = Outils()
 
     def getNeighborHood(self, currentRegion, v):
+        """
+        Function to obtain the regions belonging to a neighboring v
+        Parameters
+        ----------
+            currentRegion :  Array
+                Coordinates of current region
+            v : Int
+                Neighboring v
+        Returns
+        -------
+            neigh_regions_values : Array
+                Coordinates of v neighboring of the current region
+        """
         regions = self.regions
         Nr = self.Nr
         Nc = self.Nc
@@ -47,6 +89,16 @@ class Detector:
         return neigh_regions_values
 
     def getMaximas(self):
+        """
+        Function to get region's maximas
+        Parameters
+        ----------
+        
+        Returns
+        -------
+            regions : Array
+                Matrix with region's maximas
+        """
         depth_frame = self.depth_frame
         #D = 3
         #self.D = 3
@@ -94,12 +146,36 @@ class Detector:
         return regions
 
     def getMaximaNeighborhood(self, currentRegion, v):
+        """
+        Function to obtain the maxima of the neighborhood of a region
+        Parameters
+        ----------
+            currentRegion : Array
+                Coordinates of a region
+            v : Int
+                indicates the neighborhood 
+        Returns
+        -------
+            neigh_maxima : Array
+                Neighborhood maximas
+        """
         neigh_maximas = self.getNeighborHood(currentRegion, v)
         neigh_maxima = np.amax(neigh_maximas)
 
         return neigh_maxima
 
     def extractCandidates(self, v):
+        """
+        Extract candidates in a v neightborhood
+        Parameters
+        ----------
+            v : Int
+                number of neightborhood
+        Returns
+        -------
+            candidates : Array
+                coordinates of the candidates
+        """
         Nr = self.Nr
         Nc = self.Nc
         regions = self.regions
@@ -126,6 +202,12 @@ class Detector:
         return self.candidates
 
     def findNearby(self, candidates, v):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         i = 0
         new_candidates = []
         len_candidates = candidates.shape[0] 
@@ -171,6 +253,12 @@ class Detector:
         return new_candidates, idx
 
     def getNeighborhoodDirection(self, region, v, direction):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         Nr = self.Nr
         Nc = self.Nc
         neigh = np.array([])
@@ -248,6 +336,12 @@ class Detector:
         return neigh
 
     def checkDecreasingHeightsAndAdd(self, ROI, ROI_, person, currentRegion, direction, h_interest):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         regions = self.regions
         Nr = self.Nr
         Nc = self.Nc
@@ -313,6 +407,12 @@ class Detector:
             return False, ROI, ROI_
 
     def getMaxNeighDirection(self, region, direction, v):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         regions = self.regions
         neighDirections = self.getNeighborhoodDirection(region, v, direction)
         neighDirectionsValues = regions[neighDirections]
@@ -322,6 +422,12 @@ class Detector:
         return maxNeighDirection
     
     def findNeighBody(self, ROI, ROI_, person, v, direction, h_Interest):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         h_max = person[2]
         regions = self.regions
         D = self.D
@@ -369,6 +475,12 @@ class Detector:
         return ROI, ROI_
 
     def extractROI(self, person, h_Interest, v):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         
         r = person[0]
         c = person[1]
@@ -380,6 +492,12 @@ class Detector:
         return ROI, ROI_
 
     def extractROIS(self, persons, v_ROIS, h_Interest):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         ROIS = []
         ROIS_ = []
         for person in persons:
@@ -391,6 +509,12 @@ class Detector:
         return ROIS_
 
     def findBoundingBoxes(self, ROIS_people):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         BBs = []
         D = self.D
         for ROIS_person in ROIS_people:
@@ -420,7 +544,12 @@ class Detector:
         return BBs
 
     def findSameBB(self, BBs):
-        
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         for i in range(len(BBs)-1):
             if(i < len(BBs)-1):
                 bb1 = BBs[i]
@@ -454,6 +583,12 @@ class Detector:
             
 
     def peopleDetection(self, depth_frame, v_Candidates = 2, v_Nearbys = 3, v_ROIS = 4, h_Interest = 400):
+        """
+        Parameters
+        ----------
+        Returns
+        -------
+        """
         D = self.D
         depth_frame = np.where(depth_frame != 0, self.HCAMERA*10 - depth_frame, 0)
         #depth_frame = cv.medianBlur(depth_frame.astype(np.float32), 15)
@@ -479,12 +614,4 @@ class Detector:
 
         return BBs, persons, ROIS, centroids
 
-    def __init__(self, FOCAL, A, L, HCAMERA, HPMIN):
-        self.HCAMERA = HCAMERA
-        self.HPMIN = HPMIN
-        self.D = round((FOCAL/A) * (L/(HCAMERA - HPMIN)))
-        print(self.D )
-        #self.D = 10
-        self.delta_r = np.array([-1, 0, 1, 0, -1, 1, 1, -1])
-        self.delta_c = np.array([0, 1, 0, -1, 1, 1, -1, -1])
-        self.outils = Outils()
+    
