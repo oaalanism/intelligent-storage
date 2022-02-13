@@ -40,7 +40,7 @@ class MultiTracker:
 
     def updateTrackersNotDetected(self, trackersNonDetected):
         """
-            Function to loop in the list of trackers which have not detected to update them
+            Function to loop in the list of trackers which have not been detected to update them
             Parameters
             ---------
                 trackersNonDetected: Array of trackers objects
@@ -63,9 +63,9 @@ class MultiTracker:
             trackers: Array
                 List of tracker objects updated
             trackersNotAssociated: Array
-                List of tracker objects that have not associated
+                List of tracker objects that have not been associated
             detectionsNotAssociated: Array
-                List of detections thath have not associated
+                List of detections thath have not been associated
         """
         detections = np.array(detections)
         trackersNotAssociated = []
@@ -121,16 +121,45 @@ class MultiTracker:
         return predictions
 
     def predictTrackers(self):
+        """
+        Kalman filter tracker prediction feature released
+        Parameters
+        ---------
+        Returns
+        -------
+        """
         for tracker in self.trackers:
             tracker.predict()
 
     def addNewTrackers(self, detections):
+        """
+        New trackers are created for those detectections that have not been detected
+        
+        Parameters
+        ----------
+        
+        Returns
+        -------
+        """
         for detection in detections:
             tracker = Tracker(self.id, detection, self.nbImage)
             self.trackers.append(tracker)
             self.id = self.id + 1
 
     def updateMatchedTrackers(self, matched, detections):
+        """
+        Trackers matched with detections are update
+        
+        Parameters
+        ----------
+            matched: Array
+                List of trackers objects that has matched with a detection
+            detections: Array
+                List of bounding boxes detections
+        Returns
+        -------
+        
+        """
 
         for m in matched:
             d = int(m[0])
@@ -138,6 +167,20 @@ class MultiTracker:
             self.trackers[t].update(detections[d])
 
     def updateTrackers(self, detections):
+        """
+        This function launch others function to update trackers
+        
+        Parameters
+        ----------
+            detections: Array
+                List of detections 
+        Returns
+        -------
+            trackers: Array
+                List of object trackers associated with detection
+            nonDetected: Array
+                List of trackers which has been associated in more of 15 seconds
+        """
         self.nonDetected = []
         self.predictTrackers()
         trackersPredictions = self.getPredictions()
