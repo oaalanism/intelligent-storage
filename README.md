@@ -2,7 +2,7 @@
 
 This is the re-identification project that has the goal to associate people using features obtained with a depth camera D455 of Intel RealSense.
 
-##intelligent-storage
+## intelligent-storage
 
 First store depth frame data : 
 
