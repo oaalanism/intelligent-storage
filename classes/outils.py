@@ -1,8 +1,27 @@
 import numpy as np
 
 class Outils:
+    """
+        Outils Object group a geat number of functions that are used in different objects
+        Paramaters
+        ----------
+    """
+    def __init__(self) -> None:
+        pass
 
     def mean_neigh(self, frame, row, column):
+        """
+            Mean of distances in a pixel region
+            
+            Parameters
+            ----------
+                frame: Array
+                    Depth frame
+                row: Array
+                    Coordinates of rows region
+                column: Array
+                    Coordinates of columns region
+        """
         mean = 0
 
         row_ll = row - 1
@@ -32,6 +51,15 @@ class Outils:
         return mean
 
     def findHighestPixel(self, depth_frame, distances, error=20):
+        """
+            Obtain the maximum value within a pixel region 
+            Parameters
+            ----------
+                depth_frame: Array
+                    Depth frame
+                distances: Array
+                    set of distances with pixel coordinates
+        """
         highestPixel = None
         for distance in distances:
             if(distance[2] != 0):
@@ -43,12 +71,37 @@ class Outils:
         return highestPixel
 
     def getDistances(self, depth_frame, reverse=False):
+        """
+            Get distance of a depth frames with the corresponding coordinates 
+            
+            Parameters
+            ----------
+                depth_frame: Array
+                    Depth frame
+                    
+                reverse: Boolean
+                    True to sort distance from highest to lowest or vice versa
+        """
         points = [[row, column, depth_frame[row, column]] for row in range(depth_frame.shape[0]) for column in range(depth_frame.shape[1])] 
         
         distances = sorted(points, key= lambda t:t[2], reverse=reverse)
         return distances
 
     def intersection(self, bb1, bb2):
+        """
+            Function that calculates intersection zone between two bounding boxes
+            
+            Paramaters
+            ----------
+                bb1: Array
+                    First bounding box
+                bb2: Array
+                    Second bounding box
+            Returns
+            -------
+                intersection: Float
+                    Intersection zone            
+        """
 
         xA = max(bb1[0], bb2[0])
         yA = max(bb1[1], bb2[1])
@@ -58,6 +111,23 @@ class Outils:
         return max(0, xB - xA + 1) * max(0, yB - yA + 1)
 
     def union(self, bb1, bb2, area_I):
+        """
+            Function that calculates union zone between two bounding boxes
+            
+            Paramaters
+            ----------
+                bb1: Array
+                    First bounding box
+                bb2: Array
+                    Second bounding box
+                area_I: Float
+                    Zone intersection of the two bounding boxes
+            Returns
+            -------
+                union: Float
+                    Union zone
+                    
+        """
         w1 = bb1[2]
         h1 = bb1[3]
         
@@ -70,6 +140,21 @@ class Outils:
         
 
     def IOU(self, bb1, bb2):
+        """
+            Calculate IOU between two bounding boxes
+            A bounding box is an array with next values:
+                x center coordinate 
+                y center coordinate
+                width of bounding box
+                height of bounding box
+                
+            Parameters
+            ----------
+            bb1: Array
+                First Bounding Box 
+            bb2: Array
+                Second Bounding Box
+        """
         inter = self.intersection(bb1, bb2)
 
         uni = self.union(bb1, bb2, inter)
@@ -77,6 +162,20 @@ class Outils:
         return inter/uni
 
     def intersectionRegions(self, arr1, arr2):
+        """
+            Get intersection regions 
+            
+            Parameters
+            ----------
+                arr1: Array
+                    Set of regions
+                arr2: Array
+                    Set of regions
+            Returns
+            -------
+                Intersected Regions : Array
+                    
+        """
         arr1 = arr1.astype('float64')
         arr2 = arr2.astype('float64')
         arr1_view = arr1.view([('',arr1.dtype)]*arr1.shape[1])
@@ -85,6 +184,20 @@ class Outils:
         return intersected.view(arr1.dtype).reshape(-1, arr1.shape[1])
 
     def delimitate(self, limitInf, limitSup, varInf, varSup):
+        """
+            Function to delimitate two values between a limit
+            
+            Parameters
+            ----------
+                limitInf: Float
+                    Inferior limit
+                limitSup: Float
+                    Superior limit                    
+                varInf: Float
+                    Inferior variable to delimitate
+                varSup: Float
+                    Superior variable to delimitate
+        """
 
         if(varInf < limitInf):
             varInf = limitInf
@@ -93,5 +206,3 @@ class Outils:
 
         return int(varInf), int(varSup)
 
-    def __init__(self) -> None:
-        pass
