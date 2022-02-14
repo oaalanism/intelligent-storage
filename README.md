@@ -37,7 +37,7 @@ It follows the next steps :
 Data extraction are store in : ./training/detections/v{*version*}/
 For each version a video and a csv file are stored with detections and a video with the bounding boxes.
 
-##Data Features
+## Data Features
 
 Before launch data festures: 
 * First a global id might be defined for each person
