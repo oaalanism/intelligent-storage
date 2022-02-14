@@ -1,28 +1,55 @@
-# intelligent-storage and comparation
+# intelligent-storage, detection and feature extraction
 
-This is a project developed to compress depth data frames from the camera IntelRealSense D455.
+This is the re-identification project that has the goal to associate people using features obtained with a depth camera D455 of Intel RealSense
 
-The program convert depth data into three representations : 
-
-* Raw Data -> ./ output.v{*last version*} / raw_data /
-* Sparse matrix -> ./ output.v{*last version*} / algo /
-* RGB Video -> ./ output.v{*last version*} / video /
-
-To launch compression : 
+First store depth frame data : 
 
 ```
 python3 launch_stream.py
 ```
 
-Once the data is stored, the reliability of the representations can be analysed. To compare it, the mean squared error with the *raw-sparse data* and *raw-video data* is calculated. 
+The program convert depth data into three representations : 
 
-To launch comparation : 
+* Raw Data -> ./ output/v{*last version*} / raw_data /
+* Sparse matrix -> ./output/v{*last version*} / algo /
+* RGB Video -> ./ output/v{*last version*} / video /
+
+## Detections
+
+Then detections are obtained : 
 
 ```
-python3 launch_comparator.py [directory : optional]
+python3 launch_extractorDetection.py
 ```
 
-To highlight, directory must to have the structure described above in order to have a good operation of the programme. In the case that directory is not specified, the programme will search the last *output* directory.
+The algorithm is the same of "Robust People Detection Using Depth Information" this article is located in ./Bibliography/ repository.
+
+It follows the next steps :
+
+* An image is cuted in regions
+* Then highest heights are obtained for each region and stored in a matrix
+* Candidates are obtained with which are the heighest heights in a certain neighborhood
+* Candidates that are in the same neightborhood are consider as a single one
+* Regions of body are calculated
+
+Data extraction are store in : ./training/detections/v{*version*}/
+For each version a video and a csv file are stored with detections and a video with the bounding boxes.
+
+##Data Features
+
+Before launch data festures: 
+* First a global id might be defined for each person
+* Then this id global is added in the csv dectection files
+
+To extract features : 
+
+```
+python3 launch_dataExtractor.py
+```
+
+A file with the features is stored in : ./data/features.csv
+
+
 
 
 ## Output stream 
